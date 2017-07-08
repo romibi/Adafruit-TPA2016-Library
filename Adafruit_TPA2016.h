@@ -19,8 +19,10 @@
 #ifndef _ADAFRUIT_TPA2016_H
 #define _ADAFRUIT_TPA2016_H
 
-#include <Arduino.h>
-#include <Wire.h>
+#include <wiringPi.h>
+#include <wiringPiI2C.h>
+#include <stdint.h>
+typedef bool boolean;
 
 #define TPA2016_SETUP 0x1
 #define TPA2016_SETUP_R_EN 0x80
@@ -75,7 +77,7 @@ class Adafruit_TPA2016 {
   void setAGCMaxGain(uint8_t x);
 
  private:
-
+  int fd;
   uint8_t read8(uint8_t a);
   void write8(uint8_t a, uint8_t d);
 

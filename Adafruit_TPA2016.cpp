@@ -23,7 +23,8 @@ Adafruit_TPA2016::Adafruit_TPA2016(void) {
 
 
 boolean Adafruit_TPA2016::begin() {
-  Wire.begin();
+  wiringPiSetup();
+  fd=wiringPiI2CSetup(TPA2016_I2CADDR);
 
   return true;
 }
@@ -38,8 +39,11 @@ void Adafruit_TPA2016::setGain(int8_t g) {
 
 // for querying the gain, returns in dB
 int8_t Adafruit_TPA2016::getGain(void) {
-
-  return read8(TPA2016_GAIN);
+  int8_t gain = int8_t(read8(TPA2016_GAIN));
+  gain = gain << 2;
+  if ((gain & 0x80) > 0) gain = (gain >> 2) | 0xC0;   // it's a negative value
+  else gain = gain >> 2;                              // it's a positive value
+  return gain;
 }
 
 // Turn on/off right and left channels
@@ -127,35 +131,11 @@ void Adafruit_TPA2016::setAGCMaxGain(uint8_t x) {
 uint8_t Adafruit_TPA2016::read8(uint8_t address)
 {
   uint8_t data;
-
-  Wire.beginTransmission(TPA2016_I2CADDR);
-#if ARDUINO >= 100
-  Wire.write(address);
-#else
-  Wire.send(address);
-#endif
-  Wire.endTransmission();
-
-  Wire.requestFrom(TPA2016_I2CADDR, 1);
-  while(!Wire.available());
-
-#if ARDUINO >= 100
-  return Wire.read();
-#else
-  return Wire.receive();
-#endif
+  return wiringPiI2CReadReg8(fd, address);
 }
 
 // write 1 byte
 void Adafruit_TPA2016::write8(uint8_t address, uint8_t data)
 {
-  Wire.beginTransmission(TPA2016_I2CADDR);
-#if ARDUINO >= 100
-  Wire.write(address);
-  Wire.write(data);  
-#else
-  Wire.send(address);
-  Wire.send(data);  
-#endif
-  Wire.endTransmission();
+  wiringPiI2CWriteReg8(fd, address, data);
 }
